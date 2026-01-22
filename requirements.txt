@@ -1,0 +1,13 @@
+# Requirements for APK Resign GUI Application
+
+# Basic requirements
+# Note: tkinter is part of standard Python distribution, no need to install separately
+
+# PyInstaller for creating executable
+pyinstaller>=5.0.0
+
+# For APK manipulation (if needed)
+# zipfile for APK handling is built-in to Python
+
+# For additional UI capabilities (optional)
+pillow>=8.0.0  # For image handling if needed in the future
