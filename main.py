@@ -13,6 +13,11 @@ import subprocess
 import shutil
 from pathlib import Path
 import json
+try:
+    from tkinterdnd2 import DND_FILES, TkinterDnD
+except ImportError:
+    print("Warning: tkinterdnd2 not found. Drag and drop functionality will be disabled.")
+    TkinterDnD = None
 
 # 版本号，格式为年月日
 VERSION = "20260122"
@@ -92,6 +97,10 @@ class APKResignGUI:
         ttk.Label(main_frame, text="选择APK文件:").grid(row=3, column=0, sticky=tk.W, pady=(0, 5))
         apk_entry = ttk.Entry(main_frame, textvariable=self.apk_path, width=50)
         apk_entry.grid(row=3, column=1, padx=(10, 0), pady=(0, 5))
+        # 启用APK文件拖拽功能
+        if hasattr(self.root, 'dnd_bind'):
+            apk_entry.drop_target_register(DND_FILES)
+            apk_entry.dnd_bind('<<Drop>>', self.on_apk_drop)
         ttk.Button(main_frame, text="浏览", command=self.browse_apk).grid(row=3, column=2, padx=(10, 0), pady=(0, 5))
         
         # 处理按钮
@@ -142,6 +151,16 @@ class APKResignGUI:
         )
         if filename:
             self.apk_path.set(filename)
+
+    def on_apk_drop(self, event):
+        """处理APK文件拖拽事件"""
+        # 获取拖拽的文件路径
+        dropped_file = self.root.tk.splitlist(event.data)[0]  # 只取第一个文件
+        # 检查文件扩展名
+        if dropped_file.lower().endswith('.apk'):
+            self.apk_path.set(dropped_file)
+        else:
+            messagebox.showerror("错误", "请选择有效的APK文件")
 
     def browse_keystore(self):
         """打开文件对话框选择密钥库文件"""
@@ -481,6 +500,10 @@ class ManageProfilesDialog:
         self.keystore_var = tk.StringVar()
         keystore_entry = ttk.Entry(edit_frame, textvariable=self.keystore_var, width=50)
         keystore_entry.grid(row=1, column=1, padx=(10, 0), pady=(0, 5))
+        # 启用密钥库文件拖拽功能
+        if hasattr(self.dialog, 'dnd_bind'):
+            keystore_entry.drop_target_register(DND_FILES)
+            keystore_entry.dnd_bind('<<Drop>>', self.on_keystore_drop)
         ttk.Button(edit_frame, text="浏览", command=self.browse_keystore).grid(row=1, column=2, padx=(10, 0), pady=(0, 5))
         
         # 密钥别名
@@ -556,6 +579,16 @@ class ManageProfilesDialog:
         )
         if filename:
             self.keystore_var.set(filename)
+
+    def on_keystore_drop(self, event):
+        """处理密钥库文件拖拽事件"""
+        # 获取拖拽的文件路径
+        dropped_file = self.dialog.tk.splitlist(event.data)[0]  # 只取第一个文件
+        # 检查文件扩展名
+        if dropped_file.lower().endswith(('.jks', '.keystore')):
+            self.keystore_var.set(dropped_file)
+        else:
+            messagebox.showerror("错误", "请选择有效的密钥库文件(.jks 或 .keystore)")
     
     def new_profile(self):
         """新建配置"""
@@ -707,7 +740,11 @@ class ManageProfilesDialog:
 
 def main():
     """运行应用程序的主函数"""
-    root = tk.Tk()
+    # 使用 TkinterDnD 创建根窗口（如果可用）
+    if TkinterDnD:
+        root = TkinterDnD.Tk()
+    else:
+        root = tk.Tk()
     app = APKResignGUI(root)
     root.mainloop()
 
