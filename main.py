@@ -14,11 +14,14 @@ import shutil
 from pathlib import Path
 import json
 
+# 版本号，格式为年月日
+VERSION = "20260122"
+
 
 class APKResignGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("APK重签名工具")
+        self.root.title(f"APK重签名工具 v{VERSION}")
         self.root.geometry("600x400")  # 调整大小适应新布局
         
         # 配置文件路径 - 使用用户目录，不会被打包到exe中
