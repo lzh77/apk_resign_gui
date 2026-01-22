@@ -29,6 +29,14 @@ class APKResignGUI:
         self.root.title(f"APK重签名工具 v{VERSION}")
         self.root.geometry("600x400")  # 调整大小适应新布局
         
+        # 尝试设置窗口图标
+        icon_path = "icon.ico"  # 默认图标文件名
+        if os.path.exists(icon_path):
+            try:
+                self.root.iconbitmap(icon_path)
+            except Exception as e:
+                print(f"加载图标失败: {e}")
+        
         # 配置文件路径 - 使用用户目录，不会被打包到exe中
         self.config_file = os.path.join(os.path.expanduser("~"), ".apk_resign_gui_config.json")
         
@@ -73,7 +81,7 @@ class APKResignGUI:
         main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         
         # 标题
-        title_label = ttk.Label(main_frame, text="APK重签名工具", font=("Arial", 16, "bold"))
+        title_label = ttk.Label(main_frame, text="APK重签名工具", font=("Microsoft YaHei", 16, "bold"))
         title_label.grid(row=0, column=0, columnspan=3, pady=(0, 20))
         
         # 更新根窗口的权重，使网格能正确拉伸
@@ -439,6 +447,14 @@ class ManageProfilesDialog:
         self.dialog.geometry("600x450")  # 增加高度以完整显示所有控件
         self.dialog.transient(parent)
         self.dialog.grab_set()
+        
+        # 设置对话框图标
+        icon_path = "icon.ico"  # 默认图标文件名
+        if os.path.exists(icon_path):
+            try:
+                self.dialog.iconbitmap(icon_path)
+            except Exception as e:
+                print(f"加载图标失败: {e}")
         
         # 居中显示对话框
         self.dialog.update_idletasks()
