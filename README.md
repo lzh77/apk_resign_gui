@@ -34,7 +34,14 @@
 
 2. 可执行文件将在 `dist/apk_resign_gui` 文件夹中创建
 
-或者，您也可以运行：
+或者，您可以使用Windows批处理脚本：
+```
+build.bat
+```
+
+该批处理脚本会自动执行PyInstaller以构建可执行文件，这为Windows用户提供了更便捷的一键构建方式。
+
+您也可以直接运行：
 ```
 pyinstaller apk_resign_gui.spec
 ```
@@ -60,6 +67,12 @@ pyinstaller apk_resign_gui.spec
 - `requirements.txt`: Python依赖项
 - `apk_resign_gui.spec`: 用于构建可执行文件的PyInstaller规范文件
 - `build.py`: 构建自动化脚本
+- `build.bat`: Windows平台一键构建批处理脚本
+- `config_manager.py`: 配置管理器，用于处理应用配置
+- `constants.py`: 常量定义文件
+- `profile_dialog.py`: 配置文件对话框，用于管理签名配置
+- `signing_processor.py`: APK签名处理核心逻辑
+- `icon.ico`: 应用程序图标文件
 - `README.md`: 此文件
 
 ## 许可证
