@@ -29,7 +29,6 @@ wheels/
 #  For a description on how to customize the .gitignore for PyInstaller please refer to:
 #  https://pyinstaller.org/en/stable/advanced-topics.html#using-pyinstaller-with-gnu-make-or-git
 *.manifest
-*.spec
 __pycache__/
 build/
 

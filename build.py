@@ -10,9 +10,22 @@ import shutil
 from pathlib import Path
 
 
+def check_resources():
+    """检查必要的资源文件是否存在"""
+    icon_path = Path("icon.ico")
+    if not icon_path.exists():
+        print(f"警告: 图标文件 {icon_path} 不存在，这可能导致可执行文件没有自定义图标")
+        return False
+    return True
+
+
 def run_pyinstaller():
     """Run PyInstaller with the spec file"""
     print("Starting build process with PyInstaller...")
+    
+    # 检查资源文件
+    if not check_resources():
+        print("资源文件缺失，构建可能失败或缺少图标")
     
     try:
         # Run PyInstaller with the spec file
