@@ -113,10 +113,8 @@ class ManageProfilesDialog:
         
         ttk.Button(btn_frame, text="新建", command=self.new_profile).pack(side=tk.LEFT, padx=(0, 5))
         ttk.Button(btn_frame, text="删除", command=self.delete_profile).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(btn_frame, text="重命名", command=self.rename_profile).pack(side=tk.LEFT, padx=(0, 5))
         ttk.Button(btn_frame, text="保存", command=self.save_profile).pack(side=tk.LEFT, padx=(0, 5))
         ttk.Button(btn_frame, text="设为当前", command=self.set_current).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(btn_frame, text="关闭", command=self.close_dialog).pack(side=tk.RIGHT)
     
     def load_profiles_list(self):
         """加载配置列表"""
@@ -193,52 +191,18 @@ class ManageProfilesDialog:
             self.app.save_config()
             self.load_profiles_list()
     
-    def rename_profile(self):
-        """重命名选中的配置"""
-        if not self.selected_profile:
-            messagebox.showwarning("警告", "请先选择一个配置")
-            return
-        
-        if self.selected_profile == "default":
-            messagebox.showerror("错误", "不能重命名默认配置")
-            return
-        
-        new_name = simpledialog.askstring(
-            "重命名配置", 
-            f"请输入新的配置名称:", 
-            initialvalue=self.selected_profile,
-            parent=self.dialog
-        )
-        
-        if new_name and new_name.strip():
-            profiles = self.app.config_manager.get_all_profiles()
-            if new_name in profiles:
-                messagebox.showerror("错误", f"配置 '{new_name}' 已存在")
-                return
-            
-            # 重命名配置
-            profile_data = profiles.pop(self.selected_profile)
-            profiles[new_name] = profile_data
-            self.app.config_manager.update_profile(new_name, profile_data)
-            
-            # 如果重命名的是当前配置，更新当前配置名称
-            if self.app.current_profile.get() == self.selected_profile:
-                self.app.current_profile.set(new_name)
-            
-            self.app.save_config()
-            self.selected_profile = new_name
-            self.name_var.set(new_name)
-            self.load_profiles_list()
-            self.highlight_current_profile()
-    
     def delete_profile(self):
         """删除选中的配置"""
         if not self.selected_profile:
             messagebox.showwarning("警告", "请选择要删除的配置")
             return
         
-        if self.selected_profile == "default":
-            messagebox.showerror("错误", "不能删除默认配置")
+        # 获取所有配置
+        profiles = self.app.config_manager.get_all_profiles()
+        
+        # 如果只剩一个配置，则不允许删除
+        if len(profiles) <= 1:
+            messagebox.showerror("错误", "不能删除最后一个配置，请至少保留一个配置")
             return
         
         if messagebox.askyesno("确认", f"确定要删除配置 '{self.selected_profile}' 吗？"):
@@ -253,10 +217,22 @@ class ManageProfilesDialog:
             
             # 如果删除的是当前配置，切换到第一个配置
             profiles = self.app.config_manager.get_all_profiles()
-            if self.selected_profile == self.app.current_profile.get() and profiles:
+            if self.app.current_profile.get() == self.selected_profile and profiles:
                 first_profile = next(iter(profiles))
                 self.app.current_profile.set(first_profile)
                 self.app.update_profiles_list()
+            
+            # 当只剩一个配置时，默认选中它
+            if len(profiles) == 1:
+                first_profile = next(iter(profiles))
+                for i in range(self.listbox.size()):
+                    if self.listbox.get(i) == first_profile:
+                        self.listbox.selection_set(i)
+                        self.listbox.activate(i)
+                        self.selected_profile = first_profile
+                        self.on_select_profile(None)
+                        self.listbox.see(i)
+                        break
     
     def save_profile(self):
         """保存当前编辑的配置"""
@@ -279,8 +255,8 @@ class ManageProfilesDialog:
         self.app.save_config()
         self.load_profiles_list()  # 刷新列表
         self.highlight_current_profile()  # 重新高亮当前配置
-        messagebox.showinfo("提示", f"配置 '{self.selected_profile}' 已保存")
-    
+        messagebox.showinfo("提示", f"配置 '{self.name_var.get()}' 已保存")  # 使用当前输入的名称而不是selected_profile
+
     def rename_profile_by_value(self):
         """通过值重命名配置（内部使用）"""
         old_name = self.selected_profile
