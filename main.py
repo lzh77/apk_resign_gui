@@ -61,7 +61,6 @@ class APKResignGUI:
         import sys
         if getattr(sys, 'frozen', False):
             # 如果是PyInstaller打包后的可执行文件
-            import os
             # 获取可执行文件所在的目录
             bundle_dir = sys._MEIPASS
             icon_path = os.path.join(bundle_dir, 'icon.ico')
@@ -111,10 +110,14 @@ class APKResignGUI:
         ttk.Label(main_frame, text="选择APK文件:").grid(row=3, column=0, sticky=tk.W, pady=(0, 5))
         apk_entry = ttk.Entry(main_frame, textvariable=self.apk_path, width=50)
         apk_entry.grid(row=3, column=1, padx=(10, 0), pady=(0, 5))
+        
         # 启用APK文件拖拽功能
-        if hasattr(self.root, 'dnd_bind'):
+        if TkinterDnD and hasattr(self.root, 'dnd_bind'):
+            # 注册拖拽目标
             apk_entry.drop_target_register(DND_FILES)
+            # 绑定拖拽事件
             apk_entry.dnd_bind('<<Drop>>', self.on_apk_drop)
+            
         ttk.Button(main_frame, text="浏览", command=self.browse_apk).grid(row=3, column=2, padx=(10, 0), pady=(0, 5))
         
         # 处理按钮
@@ -164,12 +167,16 @@ class APKResignGUI:
     def on_apk_drop(self, event):
         """处理APK文件拖拽事件"""
         # 获取拖拽的文件路径
-        dropped_file = self.root.tk.splitlist(event.data)[0]  # 只取第一个文件
-        # 检查文件扩展名
-        if dropped_file.lower().endswith('.apk'):
-            self.apk_path.set(dropped_file)
-        else:
-            messagebox.showerror("错误", "请选择有效的APK文件")
+        try:
+            # 处理可能包含花括号的路径
+            dropped_file = event.data.strip('{}')
+            # 检查文件扩展名
+            if dropped_file.lower().endswith('.apk'):
+                self.apk_path.set(dropped_file)
+            else:
+                messagebox.showerror("错误", "请选择有效的APK文件")
+        except Exception as e:
+            messagebox.showerror("错误", f"处理拖拽文件时出错: {str(e)}")
 
     def resign_apk(self):
         """处理APK重签名过程"""
@@ -242,8 +249,8 @@ class APKResignGUI:
         except queue.Empty:
             pass
         
-        # 继续检查
-        self.root.after(100, self.check_progress())
+        # 继续检查，除非我们收到了完成或错误消息
+        self.root.after(100, self.check_progress)
 
 
 def main():
