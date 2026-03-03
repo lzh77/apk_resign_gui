@@ -175,7 +175,7 @@ class SigningProcessor:
         except Exception as e:
             return False, "未知错误", f"检查工具时出错: {str(e)}"
 
-    def perform_resign(self, apk_path, keystore_path, storepass, key_alias, progress_queue):
+    def perform_resign(self, apk_path, keystore_path, storepass, keypass, key_alias, progress_queue):
         """执行APK重签名"""
         # 发送初始进度
         progress_queue.put({'type': 'progress', 'value': 10, 'status': '准备重签名...'})
@@ -202,6 +202,7 @@ class SigningProcessor:
                     '--ks', keystore_path,
                     '--ks-key-alias', key_alias,
                     '--ks-pass', f'pass:{storepass}',
+                    '--key-pass', f'pass:{keypass}',
                     '--out', output_apk,
                     unsigned_apk
                 ]

@@ -13,7 +13,7 @@ class ManageProfilesDialog:
         self.app = app
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("管理签名配置")
-        self.dialog.geometry("600x450")
+        self.dialog.geometry("550x500")  # 减小默认尺寸
         self.dialog.transient(parent)
         self.dialog.grab_set()
         
@@ -66,7 +66,7 @@ class ManageProfilesDialog:
         listbox_frame = ttk.Frame(main_frame)
         listbox_frame.pack(fill=tk.BOTH, expand=True, pady=(5, 10))
         
-        self.listbox = tk.Listbox(listbox_frame, height=8)  # 设置固定高度
+        self.listbox = tk.Listbox(listbox_frame, height=6)  # 减少列表高度以适应更多控件
         scrollbar = ttk.Scrollbar(listbox_frame, orient="vertical", command=self.listbox.yview)
         self.listbox.configure(yscrollcommand=scrollbar.set)
         
@@ -83,29 +83,65 @@ class ManageProfilesDialog:
         # 配置名称
         ttk.Label(edit_frame, text="配置名称:").grid(row=0, column=0, sticky=tk.W, pady=(0, 5))
         self.name_var = tk.StringVar()
-        name_entry = ttk.Entry(edit_frame, textvariable=self.name_var, width=50)
-        name_entry.grid(row=0, column=1, padx=(10, 0), pady=(0, 5))
+        name_entry = ttk.Entry(edit_frame, textvariable=self.name_var, width=40)
+        name_entry.grid(row=0, column=1, columnspan=2, padx=(10, 0), pady=(0, 5))
         
         # 密钥库路径
         ttk.Label(edit_frame, text="密钥库路径:").grid(row=1, column=0, sticky=tk.W, pady=(0, 5))
+        keystore_frame = ttk.Frame(edit_frame)
+        keystore_frame.grid(row=1, column=1, columnspan=2, padx=(10, 0), pady=(0, 5), sticky="ew")
+        edit_frame.columnconfigure(1, weight=1)  # 使中间列可扩展
         self.keystore_var = tk.StringVar()
-        keystore_entry = ttk.Entry(edit_frame, textvariable=self.keystore_var, width=50)
-        keystore_entry.grid(row=1, column=1, padx=(10, 0), pady=(0, 5))
+        keystore_entry = ttk.Entry(keystore_frame, textvariable=self.keystore_var, width=35)
+        keystore_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
         # 启用密钥库文件拖拽功能
         if hasattr(self.dialog, 'dnd_bind'):
             keystore_entry.drop_target_register('DND_FILES')
             keystore_entry.dnd_bind('<<Drop>>', self.on_keystore_drop)
-        ttk.Button(edit_frame, text="浏览", command=self.browse_keystore).grid(row=1, column=2, padx=(10, 0), pady=(0, 5))
+        ttk.Button(keystore_frame, text="浏览", command=self.browse_keystore).pack(side=tk.RIGHT, padx=(5, 0))
         
-        # 密钥别名
-        ttk.Label(edit_frame, text="密钥别名:").grid(row=2, column=0, sticky=tk.W, pady=(0, 5))
+        # 密钥别名 (alias)
+        ttk.Label(edit_frame, text="密钥别名 (alias):").grid(row=2, column=0, sticky=tk.W, pady=(0, 5))
         self.alias_var = tk.StringVar()
-        ttk.Entry(edit_frame, textvariable=self.alias_var, width=50).grid(row=2, column=1, padx=(10, 0), pady=(0, 5))
+        ttk.Entry(edit_frame, textvariable=self.alias_var, width=40).grid(row=2, column=1, columnspan=2, padx=(10, 0), pady=(0, 5))
         
-        # 密码
-        ttk.Label(edit_frame, text="密码:").grid(row=3, column=0, sticky=tk.W, pady=(0, 5))
-        self.password_var = tk.StringVar()
-        ttk.Entry(edit_frame, textvariable=self.password_var, width=50, show="*").grid(row=3, column=1, padx=(10, 0), pady=(0, 5))
+        # 密钥库密码 (store password)
+        ttk.Label(edit_frame, text="密钥库密码 (store password):").grid(row=3, column=0, sticky=tk.W, pady=(0, 5))
+        self.storepass_var = tk.StringVar()
+        self.storepass_entry = ttk.Entry(edit_frame, textvariable=self.storepass_var, width=40, show="*")
+        self.storepass_entry.grid(row=3, column=1, padx=(10, 0), pady=(0, 5))
+        
+        # 密钥库密码显示切换按钮
+        self.storepass_visible = tk.BooleanVar()
+        self.storepass_toggle_btn = ttk.Button(
+            edit_frame, 
+            text="👁", 
+            width=3, 
+            command=lambda: self.toggle_password_visibility(
+                self.storepass_entry, 
+                self.storepass_visible
+            )
+        )
+        self.storepass_toggle_btn.grid(row=3, column=2, padx=(5, 0), pady=(0, 5))
+        
+        # 密钥密码 (key password)
+        ttk.Label(edit_frame, text="密钥密码 (key password):").grid(row=4, column=0, sticky=tk.W, pady=(0, 5))
+        self.keypass_var = tk.StringVar()
+        self.keypass_entry = ttk.Entry(edit_frame, textvariable=self.keypass_var, width=40, show="*")
+        self.keypass_entry.grid(row=4, column=1, padx=(10, 0), pady=(0, 5))
+        
+        # 密钥密码显示切换按钮
+        self.keypass_visible = tk.BooleanVar()
+        self.keypass_toggle_btn = ttk.Button(
+            edit_frame, 
+            text="👁", 
+            width=3, 
+            command=lambda: self.toggle_password_visibility(
+                self.keypass_entry, 
+                self.keypass_visible
+            )
+        )
+        self.keypass_toggle_btn.grid(row=4, column=2, padx=(5, 0), pady=(0, 5))
         
         # 按钮框架
         btn_frame = ttk.Frame(main_frame)
@@ -116,6 +152,32 @@ class ManageProfilesDialog:
         ttk.Button(btn_frame, text="保存", command=self.save_profile).pack(side=tk.LEFT, padx=(0, 5))
         ttk.Button(btn_frame, text="设为当前", command=self.set_current).pack(side=tk.LEFT, padx=(0, 5))
     
+    def toggle_password_visibility(self, entry_widget, visibility_var):
+        """切换密码显示/隐藏"""
+        if entry_widget.cget('show') == '*':
+            entry_widget.config(show='')
+            visibility_var.set(True)
+            # 更新按钮文本为隐藏图标
+            if entry_widget == self.storepass_entry:
+                self.storepass_toggle_btn.config(text="●")
+            elif entry_widget == self.keypass_entry:
+                self.keypass_toggle_btn.config(text="●")
+        else:
+            entry_widget.config(show='*')
+            visibility_var.set(False)
+            # 更新按钮文本为显示图标
+            if entry_widget == self.storepass_entry:
+                self.storepass_toggle_btn.config(text="👁")
+            elif entry_widget == self.keypass_entry:
+                self.keypass_toggle_btn.config(text="👁")
+        # 重新设置光标位置到末尾
+        entry_widget.icursor(tk.END)
+    
+    def copy_storepass_to_keypass(self):
+        """复制密钥库密码到密钥密码"""
+        if self.storepass_var.get():
+            self.keypass_var.set(self.storepass_var.get())
+
     def load_profiles_list(self):
         """加载配置列表"""
         self.listbox.delete(0, tk.END)
@@ -153,7 +215,8 @@ class ManageProfilesDialog:
         
         self.keystore_var.set(profile.get("keystore_path", ""))
         self.alias_var.set(profile.get("key_alias", ""))
-        self.password_var.set(profile.get("storepass", ""))
+        self.storepass_var.set(profile.get("storepass", ""))
+        self.keypass_var.set(profile.get("keypass", ""))
     
     def browse_keystore(self):
         """浏览密钥库文件"""
@@ -187,7 +250,7 @@ class ManageProfilesDialog:
                 messagebox.showerror("错误", f"配置 '{name}' 已存在")
                 return
             
-            self.app.config_manager.add_profile(name, {"keystore_path": "", "storepass": "", "key_alias": ""})
+            self.app.config_manager.add_profile(name, {"keystore_path": "", "storepass": "", "keypass": "", "key_alias": ""})
             self.app.save_config()
             self.load_profiles_list()
     
@@ -212,7 +275,8 @@ class ManageProfilesDialog:
             self.name_var.set("")
             self.keystore_var.set("")
             self.alias_var.set("")
-            self.password_var.set("")
+            self.storepass_var.set("")
+            self.keypass_var.set("")
             self.load_profiles_list()
             
             # 如果删除的是当前配置，切换到第一个配置
@@ -248,7 +312,8 @@ class ManageProfilesDialog:
         profile_data = {
             "keystore_path": self.keystore_var.get(),
             "key_alias": self.alias_var.get(),
-            "storepass": self.password_var.get()
+            "storepass": self.storepass_var.get(),
+            "keypass": self.keypass_var.get()
         }
         
         self.app.config_manager.update_profile(self.selected_profile, profile_data)

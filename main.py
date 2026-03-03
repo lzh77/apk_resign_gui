@@ -190,6 +190,7 @@ class APKResignGUI:
         
         keystore_path = profile.get("keystore_path", "")
         storepass = profile.get("storepass", "")
+        keypass = profile.get("keypass", "") or storepass  # 如果没有单独设置keypass则使用storepass
         key_alias = profile.get("key_alias", "")
         
         if not keystore_path:
@@ -197,11 +198,11 @@ class APKResignGUI:
             return
             
         if not storepass:
-            messagebox.showerror("错误", f"签名配置 '{profile_name}' 中未设置密码")
+            messagebox.showerror("错误", f"签名配置 '{profile_name}' 中未设置密钥库密码 (store password)")
             return
             
         if not key_alias:
-            messagebox.showerror("错误", f"签名配置 '{profile_name}' 中未设置密钥别名")
+            messagebox.showerror("错误", f"签名配置 '{profile_name}' 中未设置密钥别名 (alias)")
             return
         
         # 保存配置
@@ -220,7 +221,7 @@ class APKResignGUI:
         
         # 在新线程中执行重签名
         thread = threading.Thread(target=processor.perform_resign, 
-                                  args=(self.apk_path.get(), keystore_path, storepass, key_alias, self.progress_queue))
+                                  args=(self.apk_path.get(), keystore_path, storepass, keypass, key_alias, self.progress_queue))
         thread.daemon = True
         thread.start()
         

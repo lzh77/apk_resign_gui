@@ -26,10 +26,15 @@ class ConfigManager:
             pass
         return {"profiles": {"default": {}}, "sdk_path": ""}
 
-    def save_config(self, sdk_path=""):
-        """保存配置到文件"""
+    def save_config(self, sdk_path="", key_password=""):
+        """保存配置到文件
+        
+        :param sdk_path: SDK路径
+        :param key_password: 密钥密码
+        """
         try:
             self.config_data["sdk_path"] = sdk_path
+            self.config_data["key_password"] = key_password
             with open(self.config_file, 'w', encoding='utf-8') as f:
                 json.dump(self.config_data, f, ensure_ascii=False, indent=2)
         except Exception as e:
